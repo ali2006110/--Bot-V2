@@ -1,4 +1,4 @@
-	const { GoatWrapper } = require("fca-liane-utils");
+const { GoatWrapper } = require("fca-liane-utils");
 module.exports = {
   config: {
     name: "help",
@@ -76,18 +76,7 @@ module.exports = {
 };
 
 const wrapper = new GoatWrapper(module.exports);
-wrapper.applyNoPrefix({ allowPrefix: true });const { GoatWrapper } = require("fca-liane-utils");
-module.exports = {
-  config: {
-    name: "help",
-    aliases: ["menu"],
-    version: "1.0",
-    author: "Hasib",
-    usePrefix: false,
-    countDown: 5,
-    role: 0,
-    shortDescription: {
-      en: "Displays a list of commands or details for a specific command"
+wrapper.applyNoPrefix({ allowPrefix: true });      en: "Displays a list of commands or details for a specific command"
     },
     longDescription: {
       en: "Provides a list of all available commands or detailed information about a specific command"
