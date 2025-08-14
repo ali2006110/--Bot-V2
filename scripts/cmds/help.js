@@ -1,75 +1,160 @@
-const fs = require("fs-extra");
-const axios = require("axios");
-const path = require("path");
-const { getPrefix } = global.utils;
-const { commands, aliases } = global.GoatBot;
-const doNotDelete = "[ 🐐 | Goat Bot V2 ]";
-/**
-* @author NTKhang
-* @author: do not delete it
-* @message if you delete or edit it you will get a global ban
-*/
-
+	const { GoatWrapper } = require("fca-liane-utils");
 module.exports = {
-	config: {
-		name: "help",
-		version: "1.21",
-		author: "NTKhang",
-		countDown: 5,
-		role: 0,
-		description: {
-			vi: "Xem cách sử dụng của các lệnh",
-			en: "View command usage"
-		},
-		category: "info",
-		guide: {
-			vi: "   {pn} [để trống | <số trang> | <tên lệnh>]"
-				+ "\n   {pn} <command name> [-u | usage | -g | guide]: chỉ hiển thị phần hướng dẫn sử dụng lệnh"
-				+ "\n   {pn} <command name> [-i | info]: chỉ hiển thị phần thông tin về lệnh"
-				+ "\n   {pn} <command name> [-r | role]: chỉ hiển thị phần quyền hạn của lệnh"
-				+ "\n   {pn} <command name> [-a | alias]: chỉ hiển thị phần tên viết tắt của lệnh",
-			en: "{pn} [empty | <page number> | <command name>]"
-				+ "\n   {pn} <command name> [-u | usage | -g | guide]: only show command usage"
-				+ "\n   {pn} <command name> [-i | info]: only show command info"
-				+ "\n   {pn} <command name> [-r | role]: only show command role"
-				+ "\n   {pn} <command name> [-a | alias]: only show command alias"
-		},
-		priority: 1
-	},
+  config: {
+    name: "help",
+    aliases: ["menu"],
+    version: "1.0",
+    author: "Hasib",
+    usePrefix: false,
+    countDown: 5,
+    role: 0,
+    shortDescription: {
+      en: "Displays a list of commands or details for a specific command"
+    },
+    longDescription: {
+      en: "Provides a list of all available commands or detailed information about a specific command"
+    },
+    category: "info",
+    guide: {
+      en: "help [command_name]"
+    }
+  },
 
-	langs: {
-		vi: {
-			help: "╭─────────────⭓"
-				+ "\n%1"
-				+ "\n├─────⭔"
-				+ "\n│ Trang [ %2/%3 ]"
-				+ "\n│ Hiện tại bot có %4 lệnh có thể sử dụng"
-				+ "\n│ » Gõ %5help <số trang> để xem danh sách các lệnh"
-				+ "\n│ » Gõ %5help để xem chi tiết cách sử dụng lệnh đó"
-				+ "\n├────────⭔"
-				+ "\n│ %6"
-				+ "\n╰─────────────⭓",
-			help2: "%1├───────⭔"
-				+ "\n│ » Hiện tại bot có %2 lệnh có thể sử dụng"
-				+ "\n│ » Gõ %3help <tên lệnh> để xem chi tiết cách sử dụng lệnh đó"
-				+ "\n│ %4"
-				+ "\n╰─────────────⭓",
-			commandNotFound: "Lệnh \"%1\" không tồn tại",
-			getInfoCommand: "╭── NAME ────⭓"
-				+ "\n│ %1"
-				+ "\n├── INFO"
-				+ "\n│ Mô tả: %2"
-				+ "\n│ Các tên gọi khác: %3"
-				+ "\n│ Các tên gọi khác trong nhóm bạn: %4"
-				+ "\n│ Version: %5"
-				+ "\n│ Role: %6"
-				+ "\n│ Thời gian mỗi lần dùng lệnh: %7s"
-				+ "\n│ Author: %8"
-				+ "\n├── USAGE"
-				+ "\n│%9"
-				+ "\n├── NOTES"
-				+ "\n│ Nội dung bên trong <XXXXX> là có thể thay đổi"
-				+ "\n│ Nội dung bên trong [a|b|c] là a hoặc b hoặc c"
+  onStart: async function ({ api, event, args }) {
+    const { threadID, messageID } = event;
+    const { commands, aliases } = global.GoatBot;
+    const totalCommands = commands.size;
+
+    if (args.length === 0) {
+      const categories = {};
+      let responseMessage = "✨ 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐋𝐢𝐬𝐭 ✨\n\n";
+
+      for (const [name, cmd] of commands) {
+        if (!categories[cmd.config.category]) {
+          categories[cmd.config.category] = [];
+        }
+        categories[cmd.config.category].push(name);
+      }
+
+      for (const [category, cmds] of Object.entries(categories)) {
+        responseMessage += `\n╭────────⭓\n`;
+        responseMessage += `\│『 ${category.toUpperCase()} 』\n`;
+        responseMessage += cmds.map((cmd) => `│  ${cmd}`).join("\n") + "\n";
+        responseMessage += `╰────────⭓`;
+      }
+
+      responseMessage += `\n╭───────────────➣\n│ 𝐂𝐮𝐫𝐫𝐞𝐧𝐭𝐥𝐲, 𝐭𝐡𝐞 𝐛𝐨𝐭 𝐡𝐚𝐬 [${totalCommands}]\n│ 𝐜𝐨𝐦𝐦𝐚𝐧𝐝𝐬.\n│ 𝐔𝐬𝐞 'help (cmd)' 𝐭𝐨 𝐠𝐞𝐭 𝐦𝐨𝐫𝐞\n│ 𝐝𝐞𝐭𝐚𝐢𝐥𝐬.\n│ 𝐂𝐫𝐞𝐚𝐭𝐨𝐫: Ali akbar \n╰───────────────➣`;
+
+      return api.sendMessage(responseMessage, threadID, messageID);
+    }
+
+    // Specific command info
+    const commandName = args[0].toLowerCase();
+    const command = commands.get(commandName) || commands.get(aliases.get(commandName));
+
+    if (!command) {
+      return api.sendMessage(`❌ Command "${commandName}" not found.`, threadID, messageID);
+    }
+
+    const config = command.config;
+    const guide = config.guide?.en || "No usage guide available.";
+    const description = config.longDescription?.en || "No description available.";
+    const response =
+      `✿──────────────────✿ \n\n` +
+      `🔍 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐃𝐞𝐭𝐚𝐢𝐥𝐬 🔎\n\n` +
+      `🌟 | 𝐍𝐚𝐦𝐞: ${config.name}\n` +
+      `🔀 | 𝐀𝐥𝐢𝐚𝐬𝐞𝐬: ${config.aliases?.join(", ") || "None"}\n` +
+      `📜 | 𝐃𝐞𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧: ${description}\n` +
+      `🛠️ 𝐔𝐬𝐚𝐠𝐞: ${guide}\n` +
+      `🗂️ | 𝐕𝐞𝐫𝐬𝐢𝐨𝐧: ${config.version || "1.0"}\n` +
+      `✍️ | 𝐀𝐮𝐭𝐡𝐨𝐫: ${config.author || "Unknown"}\n` +
+      `⏳ | 𝐂𝐨𝐨𝐥𝐝𝐨𝐰𝐧: ${config.countDown || 0}s\n` +
+      `🔑 | 𝐑𝐨𝐥𝐞: ${config.role || 0}\n\n✿──────────────────✿`;
+
+    return api.sendMessage(response, threadID, messageID);
+  }
+};
+
+const wrapper = new GoatWrapper(module.exports);
+wrapper.applyNoPrefix({ allowPrefix: true });const { GoatWrapper } = require("fca-liane-utils");
+module.exports = {
+  config: {
+    name: "help",
+    aliases: ["menu"],
+    version: "1.0",
+    author: "Hasib",
+    usePrefix: false,
+    countDown: 5,
+    role: 0,
+    shortDescription: {
+      en: "Displays a list of commands or details for a specific command"
+    },
+    longDescription: {
+      en: "Provides a list of all available commands or detailed information about a specific command"
+    },
+    category: "info",
+    guide: {
+      en: "help [command_name]"
+    }
+  },
+
+  onStart: async function ({ api, event, args }) {
+    const { threadID, messageID } = event;
+    const { commands, aliases } = global.GoatBot;
+    const totalCommands = commands.size;
+
+    if (args.length === 0) {
+      const categories = {};
+      let responseMessage = "✨ 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐋𝐢𝐬𝐭 ✨\n\n";
+
+      for (const [name, cmd] of commands) {
+        if (!categories[cmd.config.category]) {
+          categories[cmd.config.category] = [];
+        }
+        categories[cmd.config.category].push(name);
+      }
+
+      for (const [category, cmds] of Object.entries(categories)) {
+        responseMessage += `\n╭────────⭓\n`;
+        responseMessage += `\│『 ${category.toUpperCase()} 』\n`;
+        responseMessage += cmds.map((cmd) => `│  ${cmd}`).join("\n") + "\n";
+        responseMessage += `╰────────⭓`;
+      }
+
+      responseMessage += `\n╭───────────────➣\n│ 𝐂𝐮𝐫𝐫𝐞𝐧𝐭𝐥𝐲, 𝐭𝐡𝐞 𝐛𝐨𝐭 𝐡𝐚𝐬 [${totalCommands}]\n│ 𝐜𝐨𝐦𝐦𝐚𝐧𝐝𝐬.\n│ 𝐔𝐬𝐞 'help (cmd)' 𝐭𝐨 𝐠𝐞𝐭 𝐦𝐨𝐫𝐞\n│ 𝐝𝐞𝐭𝐚𝐢𝐥𝐬.\n│ 𝐂𝐫𝐞𝐚𝐭𝐨𝐫: Ali akbar \n╰───────────────➣`;
+
+      return api.sendMessage(responseMessage, threadID, messageID);
+    }
+
+    // Specific command info
+    const commandName = args[0].toLowerCase();
+    const command = commands.get(commandName) || commands.get(aliases.get(commandName));
+
+    if (!command) {
+      return api.sendMessage(`❌ Command "${commandName}" not found.`, threadID, messageID);
+    }
+
+    const config = command.config;
+    const guide = config.guide?.en || "No usage guide available.";
+    const description = config.longDescription?.en || "No description available.";
+    const response =
+      `✿──────────────────✿ \n\n` +
+      `🔍 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐃𝐞𝐭𝐚𝐢𝐥𝐬 🔎\n\n` +
+      `🌟 | 𝐍𝐚𝐦𝐞: ${config.name}\n` +
+      `🔀 | 𝐀𝐥𝐢𝐚𝐬𝐞𝐬: ${config.aliases?.join(", ") || "None"}\n` +
+      `📜 | 𝐃𝐞𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧: ${description}\n` +
+      `🛠️ 𝐔𝐬𝐚𝐠𝐞: ${guide}\n` +
+      `🗂️ | 𝐕𝐞𝐫𝐬𝐢𝐨𝐧: ${config.version || "1.0"}\n` +
+      `✍️ | 𝐀𝐮𝐭𝐡𝐨𝐫: ${config.author || "Unknown"}\n` +
+      `⏳ | 𝐂𝐨𝐨𝐥𝐝𝐨𝐰𝐧: ${config.countDown || 0}s\n` +
+      `🔑 | 𝐑𝐨𝐥𝐞: ${config.role || 0}\n\n✿──────────────────✿`;
+
+    return api.sendMessage(response, threadID, messageID);
+  }
+};
+
+const wrapper = new GoatWrapper(module.exports);
+wrapper.applyNoPrefix({ allowPrefix: true });			+ "\n│ Nội dung bên trong [a|b|c] là a hoặc b hoặc c"
 				+ "\n╰──────⭔",
 			onlyInfo: "╭── INFO ────⭓"
 				+ "\n│ Tên lệnh: %1"
